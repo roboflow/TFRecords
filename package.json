@@ -1,8 +1,8 @@
 {
-  "name": "@jacopomangiavacchi/tfrecords",
+  "name": "@roboflow-ai/tfrecords",
   "version": "1.0.1",
   "description": "TensorFlow record (.tfrecord) API for Node.JS and Browsers",
-  "main": "src/index.js",
+  "main": "src/tensorFlowBuilder.js",
   "dependencies": {
     "buffer-reverse": "^1.0.1",
     "crypto-js": "^3.1.9-1",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/JacopoMangiavacchi/TFRecords.git"
+    "url": "git://github.com/roboflow-ai/TFRecords.git"
   },
   "keywords": [
     "TFRecords",
@@ -37,17 +37,17 @@
   },
   "homepage": "https://github.com/JacopoMangiavacchi/TFRecords#readme",
   "devDependencies": {
-    "@types/node": "10.12.7",
-    "@types/jest": "^24.0.6",
-    "jest": "^24.1.0",
+    "@types/node": "^10.12.7",
+    "@types/jest": "^24.0.23",
+    "jest": "^24.9.0",
     "prettier": "^1.16.4",
-    "ts-jest": "^24.0.0",
+    "ts-jest": "^24.2.0",
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.3.3"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://registry.npmjs.org"
   },
   "files": [
     "src/**/*"

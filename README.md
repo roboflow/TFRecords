@@ -1,3 +1,5 @@
+(forked to build on macOS, compile as `commonjs`, and read from the public npm repository)
+
 # TFRecords (.tfrecord) file format Builder and Reader for Browser and Node.js
 
 [![Build Status](https://dev.azure.com/edgeWonders/TFRecords/_apis/build/status/JacopoMangiavacchi.TFRecords)](https://dev.azure.com/edgeWonders/TFRecords/_build/results?buildId=latest)
@@ -59,4 +61,3 @@ const ymaxArray = reader.getArrayFeature(0, "image/object/bbox/ymax", FeatureTyp
 const textArray = reader.getArrayFeature(0, "image/object/class/text", FeatureType.String) as string[];
 
 ```
-
