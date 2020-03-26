@@ -50,5 +50,22 @@ describe("TFRecords Builder Functions", () => {
             const headersSize = 16;
             expect(tfrecords.length).toEqual(28 + headersSize);
         });
+
+        it("Check stream generation", () => {
+            builder = new TFRecordsBuilder();
+            builder.addArrayFeature("image/height", FeatureType.Int64, [1, 2]);
+            builder.addArrayFeature("image/height", FeatureType.Float, [1.0, 2.0]);
+            builder.addArrayFeature("image/height", FeatureType.String, ["1", "2"]);
+
+            const buffer = builder.build();
+            expect(buffer.length).toEqual(28);
+            const headersSize = 16;
+
+            const tfrecordsStream = TFRecordsBuilder.buildTFRecordsAsStream([buffer]);
+            tfrecordsStream.on('close', () => {
+                // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
+                expect(tfrecordsStream.read().length).toEqual(28 + headersSize);
+            });
+        });
     });
 });

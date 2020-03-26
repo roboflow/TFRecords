@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tensorFlowRecordsProtoBuf_pb_1 = require("./tensorFlowRecordsProtoBuf_pb");
 const tensorFlowHelpers_1 = require("./tensorFlowHelpers");
+const stream_1 = require("stream");
 /**
  * @name - TFRecords Feature Type
  * @description - Defines the type of TFRecords Feature
@@ -42,6 +43,25 @@ class TFRecordsBuilder {
                 record,
                 bufferDataMaskedCRC]);
         }));
+    }
+    /**
+     * @records - An Array of TFRecord Buffer created with releaseTFRecord()
+     * @description - Return a Readable Stream containing Buffers representating TFRecord objects
+     */
+    static buildTFRecordsAsStream(records, highWaterMark) {
+        // const resultReadable = new Readable({highWaterMark: readableHighWaterMark, objectMode: true})
+        const transformer = new stream_1.Transform({
+            transform: (record, _encoding, callback) => {
+                const length = record.length;
+                // Get TFRecords CRCs for TFRecords Header and Footer
+                const bufferLength = tensorFlowHelpers_1.getInt64Buffer(length);
+                const bufferLengthMaskedCRC = tensorFlowHelpers_1.getInt32Buffer(tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(bufferLength)));
+                const bufferDataMaskedCRC = tensorFlowHelpers_1.getInt32Buffer(tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(record)));
+                callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
+            }, highWaterMark,
+        });
+        records.forEach((r) => transformer.push(r));
+        return transformer;
     }
     /**
      * @key - Feature Key

@@ -46,5 +46,19 @@ describe("TFRecords Builder Functions", () => {
             const headersSize = 16;
             expect(tfrecords.length).toEqual(28 + headersSize);
         }));
+        it("Check stream generation", () => {
+            builder = new tensorFlowBuilder_1.TFRecordsBuilder();
+            builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, [1, 2]);
+            builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, [1.0, 2.0]);
+            builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
+            const buffer = builder.build();
+            expect(buffer.length).toEqual(28);
+            const headersSize = 16;
+            const tfrecordsStream = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecordsAsStream([buffer]);
+            tfrecordsStream.on('close', () => {
+                // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
+                expect(tfrecordsStream.read().length).toEqual(28 + headersSize);
+            });
+        });
     });
 });
