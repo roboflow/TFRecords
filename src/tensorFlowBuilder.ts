@@ -1,6 +1,7 @@
 import { TFRecordsImageMessage, Features, Feature, FeatureList,
     BytesList, Int64List, FloatList } from "./tensorFlowRecordsProtoBuf_pb";
 import { crc32c, getInt32Buffer, getInt64Buffer, maskCrc, textEncode } from "./tensorFlowHelpers";
+import { Transform, Readable } from "stream";
 
 /**
  * @name - TFRecords Feature Type
@@ -41,6 +42,29 @@ export class TFRecordsBuilder {
                                   record,
                                   bufferDataMaskedCRC]);
         }));
+    }
+
+    /**
+     * @records - An Array of TFRecord Buffer created with releaseTFRecord()
+     * @description - Return a Readable Stream containing Buffers representating TFRecord objects
+     */
+    public static buildTFRecordsAsStream(records: Buffer[], highWaterMark?: number): Readable {
+        // const resultReadable = new Readable({highWaterMark: readableHighWaterMark, objectMode: true})
+        const transformer = new Transform({
+            transform: (record: Buffer, _encoding, callback) => {
+                const length = record.length;
+
+                // Get TFRecords CRCs for TFRecords Header and Footer
+                const bufferLength = getInt64Buffer(length);
+                const bufferLengthMaskedCRC = getInt32Buffer(maskCrc(crc32c(bufferLength)));
+                const bufferDataMaskedCRC = getInt32Buffer(maskCrc(crc32c(record)));
+                callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
+            }, highWaterMark,
+        });
+
+        records.forEach((r) => transformer.push(r));
+
+        return transformer;
     }
 
     private features: Features;
