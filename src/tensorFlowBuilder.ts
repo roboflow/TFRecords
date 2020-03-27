@@ -49,8 +49,13 @@ export class TFRecordsBuilder {
      * @description - Return a Readable Stream containing Buffers representating TFRecord objects
      */
     public static buildTFRecordsAsStream(records: Buffer[], highWaterMark?: number): Readable {
-        // const resultReadable = new Readable({highWaterMark: readableHighWaterMark, objectMode: true})
-        const transformer = new Transform({
+        const transformer = this.transformStream(highWaterMark);
+        records.forEach((r) => transformer.push(r));
+        return transformer;
+    }
+
+    public static transformStream(highWaterMark?: number): Transform {
+        return new Transform({
             transform: (record: Buffer, _encoding, callback) => {
                 const length = record.length;
 
@@ -59,12 +64,9 @@ export class TFRecordsBuilder {
                 const bufferLengthMaskedCRC = getInt32Buffer(maskCrc(crc32c(bufferLength)));
                 const bufferDataMaskedCRC = getInt32Buffer(maskCrc(crc32c(record)));
                 callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
-            }, highWaterMark,
+            },
+            highWaterMark,
         });
-
-        records.forEach((r) => transformer.push(r));
-
-        return transformer;
     }
 
     private features: Features;
