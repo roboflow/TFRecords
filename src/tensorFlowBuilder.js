@@ -50,12 +50,12 @@ class TFRecordsBuilder {
      */
     static buildTFRecordsAsStream(records, highWaterMark) {
         const transformer = this.transformStream(highWaterMark);
-        records.forEach((r) => transformer.push(r));
+        records.forEach((r) => transformer.write(r));
         return transformer;
     }
     static transformStream(highWaterMark) {
         return new stream_1.Transform({
-            transform: (record, _encoding, callback) => {
+            transform: (record, encoding, callback) => {
                 const length = record.length;
                 // Get TFRecords CRCs for TFRecords Header and Footer
                 const bufferLength = tensorFlowHelpers_1.getInt64Buffer(length);

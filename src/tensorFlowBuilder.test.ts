@@ -62,7 +62,7 @@ describe("TFRecords Builder Functions", () => {
             const headersSize = 16;
 
             const tfrecordsStream = TFRecordsBuilder.buildTFRecordsAsStream([buffer]);
-            tfrecordsStream.on('close', () => {
+            tfrecordsStream.on("close", () => {
                 // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
                 expect(tfrecordsStream.read().length).toEqual(28 + headersSize);
             });

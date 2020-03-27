@@ -1,6 +1,6 @@
 {
-  "name": "@roboflow-ai/tfrecords",
-  "version": "1.0.1",
+  "name": "@roboflow/tfrecords",
+  "version": "1.0.4",
   "description": "TensorFlow record (.tfrecord) API for Node.JS and Browsers",
   "main": "src/tensorFlowBuilder.js",
   "dependencies": {

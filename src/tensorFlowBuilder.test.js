@@ -55,7 +55,7 @@ describe("TFRecords Builder Functions", () => {
             expect(buffer.length).toEqual(28);
             const headersSize = 16;
             const tfrecordsStream = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecordsAsStream([buffer]);
-            tfrecordsStream.on('close', () => {
+            tfrecordsStream.on("close", () => {
                 // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
                 expect(tfrecordsStream.read().length).toEqual(28 + headersSize);
             });

@@ -50,13 +50,13 @@ export class TFRecordsBuilder {
      */
     public static buildTFRecordsAsStream(records: Buffer[], highWaterMark?: number): Readable {
         const transformer = this.transformStream(highWaterMark);
-        records.forEach((r) => transformer.push(r));
+        records.forEach((r) => transformer.write(r));
         return transformer;
     }
 
     public static transformStream(highWaterMark?: number): Transform {
         return new Transform({
-            transform: (record: Buffer, _encoding, callback) => {
+            transform: (record: Buffer, encoding, callback) => {
                 const length = record.length;
 
                 // Get TFRecords CRCs for TFRecords Header and Footer
