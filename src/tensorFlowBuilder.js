@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TFRecordsBuilder = exports.FeatureType = void 0;
 const tensorFlowRecordsProtoBuf_pb_1 = require("./tensorFlowRecordsProtoBuf_pb");
 const tensorFlowHelpers_1 = require("./tensorFlowHelpers");
 const stream_1 = require("stream");
@@ -17,15 +18,12 @@ var FeatureType;
     FeatureType[FeatureType["Binary"] = 1] = "Binary";
     FeatureType[FeatureType["Int64"] = 2] = "Int64";
     FeatureType[FeatureType["Float"] = 3] = "Float";
-})(FeatureType = exports.FeatureType || (exports.FeatureType = {}));
+})(FeatureType || (exports.FeatureType = FeatureType = {}));
 /**
  * @name - TFRecords Builder Class
  * @description - Create a TFRecords object
  */
 class TFRecordsBuilder {
-    constructor() {
-        this.features = new tensorFlowRecordsProtoBuf_pb_1.Features();
-    }
     /**
      * @records - An Array of TFRecord Buffer created with releaseTFRecord()
      * @description - Return a Buffer representation of a TFRecords object
@@ -34,9 +32,9 @@ class TFRecordsBuilder {
         return Buffer.concat(records.map((record) => {
             const length = record.length;
             // Get TFRecords CRCs for TFRecords Header and Footer
-            const bufferLength = tensorFlowHelpers_1.getInt64Buffer(length);
-            const bufferLengthMaskedCRC = tensorFlowHelpers_1.getInt32Buffer(tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(bufferLength)));
-            const bufferDataMaskedCRC = tensorFlowHelpers_1.getInt32Buffer(tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(record)));
+            const bufferLength = (0, tensorFlowHelpers_1.getInt64Buffer)(length);
+            const bufferLengthMaskedCRC = (0, tensorFlowHelpers_1.getInt32Buffer)((0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(bufferLength)));
+            const bufferDataMaskedCRC = (0, tensorFlowHelpers_1.getInt32Buffer)((0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(record)));
             // Concatenate all TFRecords Header, Data and Footer buffer
             return Buffer.concat([bufferLength,
                 bufferLengthMaskedCRC,
@@ -58,13 +56,16 @@ class TFRecordsBuilder {
             transform: (record, encoding, callback) => {
                 const length = record.length;
                 // Get TFRecords CRCs for TFRecords Header and Footer
-                const bufferLength = tensorFlowHelpers_1.getInt64Buffer(length);
-                const bufferLengthMaskedCRC = tensorFlowHelpers_1.getInt32Buffer(tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(bufferLength)));
-                const bufferDataMaskedCRC = tensorFlowHelpers_1.getInt32Buffer(tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(record)));
+                const bufferLength = (0, tensorFlowHelpers_1.getInt64Buffer)(length);
+                const bufferLengthMaskedCRC = (0, tensorFlowHelpers_1.getInt32Buffer)((0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(bufferLength)));
+                const bufferDataMaskedCRC = (0, tensorFlowHelpers_1.getInt32Buffer)((0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(record)));
                 callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
             },
             highWaterMark,
         });
+    }
+    constructor() {
+        this.features = new tensorFlowRecordsProtoBuf_pb_1.Features();
     }
     /**
      * @key - Feature Key
@@ -87,7 +88,7 @@ class TFRecordsBuilder {
             case FeatureType.String:
                 const stringList = new tensorFlowRecordsProtoBuf_pb_1.BytesList();
                 values.forEach((value) => {
-                    stringList.addValue(tensorFlowHelpers_1.textEncode(value));
+                    stringList.addValue((0, tensorFlowHelpers_1.textEncode)(value));
                 });
                 feature.setBytesList(stringList);
                 break;

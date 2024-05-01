@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const guard_1 = __importDefault(require("./guard"));
 describe("Guard", () => {
     function methodWithRequiredName(name) {
-        guard_1.default.emtpy(name);
+        guard_1.default.empty(name);
     }
     function methodWithRequiredNameWithParam(name) {
-        guard_1.default.emtpy(name, "name", "Name is required");
+        guard_1.default.empty(name, "name", "Name is required");
     }
     function methodWithRequiredObject(options) {
         guard_1.default.null(options);

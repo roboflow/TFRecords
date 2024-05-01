@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TFRecordsReader = void 0;
 const guard_1 = __importDefault(require("./guard"));
 const tensorFlowBuilder_1 = require("./tensorFlowBuilder");
 const tensorFlowHelpers_1 = require("./tensorFlowHelpers");
@@ -18,8 +19,8 @@ class TFRecordsReader {
         let position = 0;
         while (position < tfrecords.length) {
             const lengthBuffer = tfrecords.slice(position, position + 8);
-            const dataLength = tensorFlowHelpers_1.readInt64(lengthBuffer);
-            const lengthCrc = tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(lengthBuffer));
+            const dataLength = (0, tensorFlowHelpers_1.readInt64)(lengthBuffer);
+            const lengthCrc = (0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(lengthBuffer));
             position += 8;
             const expectedLengthCrc = tfrecords.readUInt32LE(position);
             position += 4;
@@ -28,7 +29,7 @@ class TFRecordsReader {
                 break;
             }
             const dataBuffer = tfrecords.slice(position, position + dataLength);
-            const dataCrc = tensorFlowHelpers_1.maskCrc(tensorFlowHelpers_1.crc32c(dataBuffer));
+            const dataCrc = (0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(dataBuffer));
             position += dataLength;
             const expectedDataCrc = tfrecords.readUInt32LE(position);
             position += 4;
@@ -64,7 +65,7 @@ class TFRecordsReader {
         const feature = message.getContext().getFeatureMap().get(key);
         switch (type) {
             case tensorFlowBuilder_1.FeatureType.String:
-                return tensorFlowHelpers_1.textDecode(feature.getBytesList().array[0][0]);
+                return (0, tensorFlowHelpers_1.textDecode)(feature.getBytesList().array[0][0]);
             case tensorFlowBuilder_1.FeatureType.Binary:
                 return feature.getBytesList().array[0][0];
             case tensorFlowBuilder_1.FeatureType.Int64:
@@ -84,7 +85,7 @@ class TFRecordsReader {
         const feature = message.getContext().getFeatureMap().get(key);
         switch (type) {
             case tensorFlowBuilder_1.FeatureType.String:
-                return feature.getBytesList().array[0].map((buffer) => tensorFlowHelpers_1.textDecode(buffer));
+                return feature.getBytesList().array[0].map((buffer) => (0, tensorFlowHelpers_1.textDecode)(buffer));
             case tensorFlowBuilder_1.FeatureType.Binary:
                 return feature.getBytesList().array[0];
             case tensorFlowBuilder_1.FeatureType.Int64:
