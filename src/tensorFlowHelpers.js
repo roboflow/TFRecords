@@ -18,6 +18,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.readInt64 = exports.textDecode = exports.textEncode = exports.getInt32Buffer = exports.getInt64Buffer = exports.maskCrc = exports.crc32c = void 0;
 // maskDelta is a magic number taken from
 // https://github.com/tensorflow/tensorflow/blob/754048a0453a04a761e112ae5d99c149eb9910dd/
 //    tensorflow/core/lib/hash/crc32c.h#L33.
@@ -139,7 +140,7 @@ exports.textDecode = textDecode;
 function readInt64(buffer) {
     guard_1.default.null(buffer);
     guard_1.default.expression(buffer.length, (num) => num >= 8);
-    buffer = buffer_reverse_1.default(buffer.slice(0, 8));
+    buffer = (0, buffer_reverse_1.default)(buffer.slice(0, 8));
     const int64 = new node_int64_1.default(buffer, 0);
     return int64.toNumber(true);
 }

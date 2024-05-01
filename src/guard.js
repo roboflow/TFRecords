@@ -7,8 +7,8 @@ class Guard {
      * @param paramName - The name of the parameter to validate
      * @param message - The error message to return on invalid value
      */
-    static emtpy(value, paramName, message) {
-        if ((!!value === false || value.trim().length === 0)) {
+    static empty(value, paramName, message) {
+        if (value === null || !value || value.trim().length === 0) {
             message = message || (`'${paramName || "value"}' cannot be null or empty`);
             throw new Error(message);
         }
@@ -20,7 +20,7 @@ class Guard {
      * @param message - The error message to return on invalid value
      */
     static null(value, paramName, message) {
-        if ((!!value === false)) {
+        if (!value) {
             message = message || (`'${paramName || "value"}' cannot be null or undefined`);
             throw new Error(message);
         }
@@ -33,7 +33,7 @@ class Guard {
      * @param message - The error message to return on invalid value
      */
     static expression(value, predicate, paramName, message) {
-        if (!!value === false || !predicate(value)) {
+        if (!value || !predicate(value)) {
             message = message || (`'${paramName || "value"}' is not a valid value`);
             throw new Error(message);
         }
