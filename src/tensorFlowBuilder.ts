@@ -1,17 +1,18 @@
 import { TFRecordsImageMessage, Features, Feature,
     BytesList, Int64List, FloatList } from "./tensorFlowRecordsProtoBuf_pb";
 import { crc32c, getInt32Buffer, getInt64Buffer, maskCrc, textEncode } from "./tensorFlowHelpers";
-import { Transform, Readable, Writable, finished } from "stream";
+import { Transform, Readable, finished } from "stream";
 
 // Conditionally import fs for Node.js environments
 let fs: typeof import("fs") | null = null;
 try {
+    // tslint:disable-next-line:no-var-requires
     fs = require("fs");
 } catch {
     // Not available in browser
 }
 
-export interface TFRecordsFileWriter {
+export interface ITFRecordsFileWriter {
     write(record: Buffer): boolean;
     end(): Promise<void>;
 }
@@ -89,7 +90,7 @@ export class TFRecordsBuilder {
      *                Only available in Node.js environments.
      * @returns - A writer with write() and end() methods
      */
-    public static createFileWriter(filePath: string): TFRecordsFileWriter {
+    public static createFileWriter(filePath: string): ITFRecordsFileWriter {
         if (!fs) {
             throw new Error("createFileWriter is only available in Node.js. Use buildTFRecords() or transformStream() in the browser.");
         }
@@ -103,8 +104,11 @@ export class TFRecordsBuilder {
             end: () => new Promise<void>((resolve, reject) => {
                 transformer.end();
                 finished(fileStream, (err) => {
-                    if (err) reject(err);
-                    else resolve();
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
                 });
             }),
         };
