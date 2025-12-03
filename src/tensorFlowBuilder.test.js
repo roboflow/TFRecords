@@ -8,57 +8,169 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const tensorFlowBuilder_1 = require("./tensorFlowBuilder");
-describe("TFRecords Builder Functions", () => {
-    describe("Check Adding Single Features", () => {
-        let builder;
-        beforeEach(() => {
+var fs = require("fs");
+var os = require("os");
+var path = require("path");
+var tensorFlowBuilder_1 = require("./tensorFlowBuilder");
+describe("TFRecords Builder Functions", function () {
+    describe("Check Adding Single Features", function () {
+        var builder;
+        beforeEach(function () {
             builder = new tensorFlowBuilder_1.TFRecordsBuilder();
         });
-        it("Check addIntFeature", () => __awaiter(void 0, void 0, void 0, function* () {
-            builder.addFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, 123);
-            expect(builder.build()).toEqual(new Buffer([10, 23, 10, 21, 10, 12, 105, 109, 97, 103, 101, 47, 104,
-                101, 105, 103, 104, 116, 18, 5, 26, 3, 10, 1, 123]));
-        }));
-        it("Check addFloatFeature", () => __awaiter(void 0, void 0, void 0, function* () {
-            builder.addFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, 123.0);
-            expect(builder.build()).toEqual(new Buffer([10, 26, 10, 24, 10, 12, 105, 109, 97, 103, 101, 47, 104,
-                101, 105, 103, 104, 116, 18, 8, 18, 6, 10, 4, 0, 0, 246, 66]));
-        }));
-        it("Check addStringFeature", () => __awaiter(void 0, void 0, void 0, function* () {
-            builder.addFeature("image/height", tensorFlowBuilder_1.FeatureType.String, "123");
-            expect(builder.build()).toEqual(new Buffer([10, 25, 10, 23, 10, 12, 105, 109, 97, 103, 101, 47, 104,
-                101, 105, 103, 104, 116, 18, 7, 10, 5, 10, 3, 49, 50, 51]));
-        }));
+        it("Check addIntFeature", function () { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                builder.addFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, 123);
+                expect(builder.build()).toEqual(new Buffer([10, 23, 10, 21, 10, 12, 105, 109, 97, 103, 101, 47, 104,
+                    101, 105, 103, 104, 116, 18, 5, 26, 3, 10, 1, 123]));
+                return [2 /*return*/];
+            });
+        }); });
+        it("Check addFloatFeature", function () { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                builder.addFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, 123.0);
+                expect(builder.build()).toEqual(new Buffer([10, 26, 10, 24, 10, 12, 105, 109, 97, 103, 101, 47, 104,
+                    101, 105, 103, 104, 116, 18, 8, 18, 6, 10, 4, 0, 0, 246, 66]));
+                return [2 /*return*/];
+            });
+        }); });
+        it("Check addStringFeature", function () { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                builder.addFeature("image/height", tensorFlowBuilder_1.FeatureType.String, "123");
+                expect(builder.build()).toEqual(new Buffer([10, 25, 10, 23, 10, 12, 105, 109, 97, 103, 101, 47, 104,
+                    101, 105, 103, 104, 116, 18, 7, 10, 5, 10, 3, 49, 50, 51]));
+                return [2 /*return*/];
+            });
+        }); });
     });
-    describe("Check single TFRecord generation with arrays", () => {
-        let builder;
-        it("Check releaseTFRecord", () => __awaiter(void 0, void 0, void 0, function* () {
+    describe("Check single TFRecord generation with arrays", function () {
+        var builder;
+        it("Check releaseTFRecord", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var buffer, tfrecords, headersSize;
+            return __generator(this, function (_a) {
+                builder = new tensorFlowBuilder_1.TFRecordsBuilder();
+                builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, [1, 2]);
+                builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, [1.0, 2.0]);
+                builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
+                buffer = builder.build();
+                expect(buffer.length).toEqual(28);
+                tfrecords = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecords([buffer]);
+                headersSize = 16;
+                expect(tfrecords.length).toEqual(28 + headersSize);
+                return [2 /*return*/];
+            });
+        }); });
+        it("Check stream generation", function () {
             builder = new tensorFlowBuilder_1.TFRecordsBuilder();
             builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, [1, 2]);
             builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, [1.0, 2.0]);
             builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
-            const buffer = builder.build();
+            var buffer = builder.build();
             expect(buffer.length).toEqual(28);
-            const tfrecords = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecords([buffer]);
-            // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
-            const headersSize = 16;
-            expect(tfrecords.length).toEqual(28 + headersSize);
-        }));
-        it("Check stream generation", () => {
-            builder = new tensorFlowBuilder_1.TFRecordsBuilder();
-            builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, [1, 2]);
-            builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, [1.0, 2.0]);
-            builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
-            const buffer = builder.build();
-            expect(buffer.length).toEqual(28);
-            const headersSize = 16;
-            const tfrecordsStream = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecordsAsStream([buffer]);
-            tfrecordsStream.on("close", () => {
+            var headersSize = 16;
+            var tfrecordsStream = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecordsAsStream([buffer]);
+            tfrecordsStream.on("close", function () {
                 // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
                 expect(tfrecordsStream.read().length).toEqual(28 + headersSize);
             });
         });
+    });
+    describe("createFileWriter - disk buffering", function () {
+        var tempFile;
+        beforeEach(function () {
+            tempFile = path.join(os.tmpdir(), "test-tfrecords-".concat(Date.now(), ".tfrecord"));
+        });
+        afterEach(function () { return __awaiter(void 0, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, fs.promises.unlink(tempFile)];
+                    case 1:
+                        _b.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        _a = _b.sent();
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); });
+        it("writes records to disk without holding them in memory", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var writer, i, builder, stats;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        writer = tensorFlowBuilder_1.TFRecordsBuilder.createFileWriter(tempFile);
+                        // Create and write multiple records
+                        for (i = 0; i < 3; i++) {
+                            builder = new tensorFlowBuilder_1.TFRecordsBuilder();
+                            builder.addFeature("index", tensorFlowBuilder_1.FeatureType.Int64, i);
+                            writer.write(builder.build());
+                        }
+                        return [4 /*yield*/, writer.end()];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, fs.promises.stat(tempFile)];
+                    case 2:
+                        stats = _a.sent();
+                        expect(stats.size).toBeGreaterThan(0);
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it("produces same output as in-memory buildTFRecords", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var builder, record, inMemoryResult, writer, diskResult;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        builder = new tensorFlowBuilder_1.TFRecordsBuilder();
+                        builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Int64, [1, 2]);
+                        builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.Float, [1.0, 2.0]);
+                        builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
+                        record = builder.build();
+                        inMemoryResult = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecords([record]);
+                        writer = tensorFlowBuilder_1.TFRecordsBuilder.createFileWriter(tempFile);
+                        writer.write(record);
+                        return [4 /*yield*/, writer.end()];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, fs.promises.readFile(tempFile)];
+                    case 2:
+                        diskResult = _a.sent();
+                        expect(diskResult).toEqual(inMemoryResult);
+                        return [2 /*return*/];
+                }
+            });
+        }); });
     });
 });

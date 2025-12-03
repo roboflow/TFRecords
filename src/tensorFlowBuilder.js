@@ -4,6 +4,14 @@ exports.TFRecordsBuilder = exports.FeatureType = void 0;
 const tensorFlowRecordsProtoBuf_pb_1 = require("./tensorFlowRecordsProtoBuf_pb");
 const tensorFlowHelpers_1 = require("./tensorFlowHelpers");
 const stream_1 = require("stream");
+// Conditionally import fs for Node.js environments
+let fs = null;
+try {
+    fs = require("fs");
+}
+catch (_a) {
+    // Not available in browser
+}
 /**
  * @name - TFRecords Feature Type
  * @description - Defines the type of TFRecords Feature
@@ -63,6 +71,33 @@ class TFRecordsBuilder {
             },
             highWaterMark,
         });
+    }
+    /**
+     * @param filePath - Path to the output file
+     * @description - Create a writer that streams TFRecords directly to disk.
+     *                Use this for large datasets to avoid memory issues.
+     *                Only available in Node.js environments.
+     * @returns - A writer with write() and end() methods
+     */
+    static createFileWriter(filePath) {
+        if (!fs) {
+            throw new Error("createFileWriter is only available in Node.js. Use buildTFRecords() or transformStream() in the browser.");
+        }
+        const fileStream = fs.createWriteStream(filePath);
+        const transformer = this.transformStream();
+        transformer.pipe(fileStream);
+        return {
+            write: (record) => transformer.write(record),
+            end: () => new Promise((resolve, reject) => {
+                transformer.end();
+                (0, stream_1.finished)(fileStream, (err) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve();
+                });
+            }),
+        };
     }
     constructor() {
         this.features = new tensorFlowRecordsProtoBuf_pb_1.Features();

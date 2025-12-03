@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { FeatureType, TFRecordsBuilder } from "./tensorFlowBuilder";
 
 describe("TFRecords Builder Functions", () => {
@@ -66,6 +69,60 @@ describe("TFRecords Builder Functions", () => {
                 // 16 = 8bytes for Lenght + 4bytes for CRC(Length) + 4bytes CRC(buffer)
                 expect(tfrecordsStream.read().length).toEqual(28 + headersSize);
             });
+        });
+    });
+
+    describe("createFileWriter - disk buffering", () => {
+        let tempFile: string;
+
+        beforeEach(() => {
+            tempFile = path.join(os.tmpdir(), `test-tfrecords-${Date.now()}.tfrecord`);
+        });
+
+        afterEach(async () => {
+            // Clean up temp file if it exists
+            try {
+                await fs.promises.unlink(tempFile);
+            } catch {
+                // Ignore if file doesn't exist
+            }
+        });
+
+        it("writes records to disk without holding them in memory", async () => {
+            const writer = TFRecordsBuilder.createFileWriter(tempFile);
+
+            // Create and write multiple records
+            for (let i = 0; i < 3; i++) {
+                const builder = new TFRecordsBuilder();
+                builder.addFeature("index", FeatureType.Int64, i);
+                writer.write(builder.build());
+            }
+
+            await writer.end();
+
+            // Verify file exists and has content
+            const stats = await fs.promises.stat(tempFile);
+            expect(stats.size).toBeGreaterThan(0);
+        });
+
+        it("produces same output as in-memory buildTFRecords", async () => {
+            const builder = new TFRecordsBuilder();
+            builder.addArrayFeature("image/height", FeatureType.Int64, [1, 2]);
+            builder.addArrayFeature("image/height", FeatureType.Float, [1.0, 2.0]);
+            builder.addArrayFeature("image/height", FeatureType.String, ["1", "2"]);
+            const record = builder.build();
+
+            // Build using in-memory method
+            const inMemoryResult = TFRecordsBuilder.buildTFRecords([record]);
+
+            // Build using file writer
+            const writer = TFRecordsBuilder.createFileWriter(tempFile);
+            writer.write(record);
+            await writer.end();
+
+            // Read file contents and compare
+            const diskResult = await fs.promises.readFile(tempFile);
+            expect(diskResult).toEqual(inMemoryResult);
         });
     });
 });

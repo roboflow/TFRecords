@@ -1,7 +1,20 @@
-import { TFRecordsImageMessage, Features, Feature, FeatureList,
+import { TFRecordsImageMessage, Features, Feature,
     BytesList, Int64List, FloatList } from "./tensorFlowRecordsProtoBuf_pb";
 import { crc32c, getInt32Buffer, getInt64Buffer, maskCrc, textEncode } from "./tensorFlowHelpers";
-import { Transform, Readable } from "stream";
+import { Transform, Readable, Writable, finished } from "stream";
+
+// Conditionally import fs for Node.js environments
+let fs: typeof import("fs") | null = null;
+try {
+    fs = require("fs");
+} catch {
+    // Not available in browser
+}
+
+export interface TFRecordsFileWriter {
+    write(record: Buffer): boolean;
+    end(): Promise<void>;
+}
 
 /**
  * @name - TFRecords Feature Type
@@ -67,6 +80,34 @@ export class TFRecordsBuilder {
             },
             highWaterMark,
         });
+    }
+
+    /**
+     * @param filePath - Path to the output file
+     * @description - Create a writer that streams TFRecords directly to disk.
+     *                Use this for large datasets to avoid memory issues.
+     *                Only available in Node.js environments.
+     * @returns - A writer with write() and end() methods
+     */
+    public static createFileWriter(filePath: string): TFRecordsFileWriter {
+        if (!fs) {
+            throw new Error("createFileWriter is only available in Node.js. Use buildTFRecords() or transformStream() in the browser.");
+        }
+
+        const fileStream = fs.createWriteStream(filePath);
+        const transformer = this.transformStream();
+        transformer.pipe(fileStream);
+
+        return {
+            write: (record: Buffer) => transformer.write(record),
+            end: () => new Promise<void>((resolve, reject) => {
+                transformer.end();
+                finished(fileStream, (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            }),
+        };
     }
 
     private features: Features;
