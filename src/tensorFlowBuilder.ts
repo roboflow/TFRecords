@@ -6,7 +6,6 @@ import { Transform, Readable, finished } from "stream";
 // Conditionally import fs for Node.js environments
 let fs: typeof import("fs") | null = null;
 try {
-    // tslint:disable-next-line:no-var-requires
     fs = require("fs");
 } catch {
     // Not available in browser
