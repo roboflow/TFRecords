@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TFRecordsBuilder = exports.FeatureType = void 0;
+exports.TFRecordsBuilder = exports.FeatureType = exports.TFRecordsTransform = void 0;
 const tensorFlowRecordsProtoBuf_pb_1 = require("./tensorFlowRecordsProtoBuf_pb");
 const tensorFlowHelpers_1 = require("./tensorFlowHelpers");
 const stream_1 = require("stream");
@@ -12,6 +12,26 @@ try {
 catch (_a) {
     // Not available in browser
 }
+/**
+ * A Transform stream for TFRecords with an optional `finished` promise
+ * that resolves when the stream (and any piped file) is complete.
+ */
+class TFRecordsTransform extends stream_1.Transform {
+    constructor(options, fileStream) {
+        super(options);
+        // If there's a file stream, wait for it to finish; otherwise wait for this transform
+        const streamToWatch = fileStream || this;
+        this.finished = new Promise((resolve, reject) => {
+            (0, stream_1.finished)(streamToWatch, (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
+    }
+}
+exports.TFRecordsTransform = TFRecordsTransform;
 /**
  * @name - TFRecords Feature Type
  * @description - Defines the type of TFRecords Feature
@@ -59,11 +79,27 @@ class TFRecordsBuilder {
         records.forEach((r) => transformer.write(r));
         return transformer;
     }
+    /**
+     * @description - Create a Transform stream for TFRecords.
+     *                Optionally pipes output directly to disk when filePath is provided.
+     * @param optionsOrHighWaterMark - Stream buffer size (number) or options object
+     * @param options.highWaterMark - Stream buffer size
+     * @param options.filePath - When provided, pipes output to this file (Node.js only).
+     *                           Use stream.finished promise to know when done.
+     * @returns - TFRecordsTransform stream with a `finished` promise
+     */
     static transformStream(optionsOrHighWaterMark) {
         const options = typeof optionsOrHighWaterMark === "number"
             ? { highWaterMark: optionsOrHighWaterMark }
             : optionsOrHighWaterMark;
-        const transformer = new stream_1.Transform({
+        let fileStream;
+        if (options === null || options === void 0 ? void 0 : options.filePath) {
+            if (!fs) {
+                throw new Error("File output is only available in Node.js. Use transformStream() without filePath in the browser.");
+            }
+            fileStream = fs.createWriteStream(options.filePath);
+        }
+        const transformer = new TFRecordsTransform({
             transform: (record, encoding, callback) => {
                 const length = record.length;
                 // Get TFRecords CRCs for TFRecords Header and Footer
@@ -73,30 +109,11 @@ class TFRecordsBuilder {
                 callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
             },
             highWaterMark: options === null || options === void 0 ? void 0 : options.highWaterMark,
-        });
-        if (!(options === null || options === void 0 ? void 0 : options.filePath)) {
-            return transformer;
+        }, fileStream);
+        if (fileStream) {
+            transformer.pipe(fileStream);
         }
-        // File output mode
-        if (!fs) {
-            throw new Error("File output is only available in Node.js. Use transformStream() without filePath in the browser.");
-        }
-        const fileStream = fs.createWriteStream(options.filePath);
-        transformer.pipe(fileStream);
-        return {
-            write: (record) => transformer.write(record),
-            end: () => new Promise((resolve, reject) => {
-                transformer.end();
-                (0, stream_1.finished)(fileStream, (err) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            }),
-        };
+        return transformer;
     }
     constructor() {
         this.features = new tensorFlowRecordsProtoBuf_pb_1.Features();

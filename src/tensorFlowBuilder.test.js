@@ -126,18 +126,19 @@ describe("TFRecords Builder Functions", function () {
             });
         }); });
         it("writes records to disk without holding them in memory", function () { return __awaiter(void 0, void 0, void 0, function () {
-            var writer, i, builder, stats;
+            var stream, i, builder, stats;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        writer = tensorFlowBuilder_1.TFRecordsBuilder.transformStream({ filePath: tempFile });
+                        stream = tensorFlowBuilder_1.TFRecordsBuilder.transformStream({ filePath: tempFile });
                         // Create and write multiple records
                         for (i = 0; i < 3; i++) {
                             builder = new tensorFlowBuilder_1.TFRecordsBuilder();
                             builder.addFeature("index", tensorFlowBuilder_1.FeatureType.Int64, i);
-                            writer.write(builder.build());
+                            stream.write(builder.build());
                         }
-                        return [4 /*yield*/, writer.end()];
+                        stream.end();
+                        return [4 /*yield*/, stream.finished];
                     case 1:
                         _a.sent();
                         return [4 /*yield*/, fs.promises.stat(tempFile)];
@@ -149,7 +150,7 @@ describe("TFRecords Builder Functions", function () {
             });
         }); });
         it("produces same output as in-memory buildTFRecords", function () { return __awaiter(void 0, void 0, void 0, function () {
-            var builder, record, inMemoryResult, writer, diskResult;
+            var builder, record, inMemoryResult, stream, diskResult;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -159,9 +160,10 @@ describe("TFRecords Builder Functions", function () {
                         builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
                         record = builder.build();
                         inMemoryResult = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecords([record]);
-                        writer = tensorFlowBuilder_1.TFRecordsBuilder.transformStream({ filePath: tempFile });
-                        writer.write(record);
-                        return [4 /*yield*/, writer.end()];
+                        stream = tensorFlowBuilder_1.TFRecordsBuilder.transformStream({ filePath: tempFile });
+                        stream.write(record);
+                        stream.end();
+                        return [4 /*yield*/, stream.finished];
                     case 1:
                         _a.sent();
                         return [4 /*yield*/, fs.promises.readFile(tempFile)];

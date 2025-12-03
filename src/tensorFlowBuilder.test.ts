@@ -89,16 +89,17 @@ describe("TFRecords Builder Functions", () => {
         });
 
         it("writes records to disk without holding them in memory", async () => {
-            const writer = TFRecordsBuilder.transformStream({ filePath: tempFile });
+            const stream = TFRecordsBuilder.transformStream({ filePath: tempFile });
 
             // Create and write multiple records
             for (let i = 0; i < 3; i++) {
                 const builder = new TFRecordsBuilder();
                 builder.addFeature("index", FeatureType.Int64, i);
-                writer.write(builder.build());
+                stream.write(builder.build());
             }
 
-            await writer.end();
+            stream.end();
+            await stream.finished;
 
             // Verify file exists and has content
             const stats = await fs.promises.stat(tempFile);
@@ -116,9 +117,10 @@ describe("TFRecords Builder Functions", () => {
             const inMemoryResult = TFRecordsBuilder.buildTFRecords([record]);
 
             // Build using file writer
-            const writer = TFRecordsBuilder.transformStream({ filePath: tempFile });
-            writer.write(record);
-            await writer.end();
+            const stream = TFRecordsBuilder.transformStream({ filePath: tempFile });
+            stream.write(record);
+            stream.end();
+            await stream.finished;
 
             // Read file contents and compare
             const diskResult = await fs.promises.readFile(tempFile);

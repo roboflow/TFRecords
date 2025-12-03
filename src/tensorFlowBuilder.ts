@@ -1,7 +1,7 @@
 import { TFRecordsImageMessage, Features, Feature,
     BytesList, Int64List, FloatList } from "./tensorFlowRecordsProtoBuf_pb";
 import { crc32c, getInt32Buffer, getInt64Buffer, maskCrc, textEncode } from "./tensorFlowHelpers";
-import { Transform, Readable, finished } from "stream";
+import { Transform, Readable, TransformOptions, finished } from "stream";
 
 // Conditionally import fs for Node.js environments
 let fs: typeof import("fs") | null = null;
@@ -11,14 +11,34 @@ try {
     // Not available in browser
 }
 
-export interface ITFRecordsFileWriter {
-    write(record: Buffer): boolean;
-    end(): Promise<void>;
-}
-
 export interface TransformStreamOptions {
     highWaterMark?: number;
     filePath?: string;
+}
+
+/**
+ * A Transform stream for TFRecords with an optional `finished` promise
+ * that resolves when the stream (and any piped file) is complete.
+ */
+export class TFRecordsTransform extends Transform {
+    /**
+     * A promise that resolves when the stream is finished writing.
+     * When piped to a file, this waits for the file to be fully written.
+     */
+    public finished: Promise<void>;
+
+    constructor(options?: TransformOptions, fileStream?: NodeJS.WritableStream) {
+        super(options);
+
+        // If there's a file stream, wait for it to finish; otherwise wait for this transform
+        const streamToWatch = fileStream || this;
+        this.finished = new Promise((resolve, reject) => {
+            finished(streamToWatch, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+    }
 }
 
 /**
@@ -74,60 +94,48 @@ export class TFRecordsBuilder {
 
     /**
      * @description - Create a Transform stream for TFRecords.
-     *                Optionally writes directly to disk when filePath is provided.
+     *                Optionally pipes output directly to disk when filePath is provided.
      * @param optionsOrHighWaterMark - Stream buffer size (number) or options object
      * @param options.highWaterMark - Stream buffer size
-     * @param options.filePath - When provided, pipes output to this file (Node.js only)
-     * @returns - Transform stream, or ITFRecordsFileWriter when filePath is provided
+     * @param options.filePath - When provided, pipes output to this file (Node.js only).
+     *                           Use stream.finished promise to know when done.
+     * @returns - TFRecordsTransform stream with a `finished` promise
      */
-    public static transformStream(): Transform;
-    public static transformStream(highWaterMark: number): Transform;
-    public static transformStream(options: { highWaterMark?: number }): Transform;
-    public static transformStream(options: { filePath: string; highWaterMark?: number }): ITFRecordsFileWriter;
-    public static transformStream(optionsOrHighWaterMark?: TransformStreamOptions | number): Transform | ITFRecordsFileWriter {
+    public static transformStream(optionsOrHighWaterMark?: TransformStreamOptions | number): TFRecordsTransform {
         const options: TransformStreamOptions | undefined =
             typeof optionsOrHighWaterMark === "number"
                 ? { highWaterMark: optionsOrHighWaterMark }
                 : optionsOrHighWaterMark;
 
-        const transformer = new Transform({
-            transform: (record: Buffer, encoding, callback) => {
-                const length = record.length;
+        let fileStream: NodeJS.WritableStream | undefined;
+        if (options?.filePath) {
+            if (!fs) {
+                throw new Error("File output is only available in Node.js. Use transformStream() without filePath in the browser.");
+            }
+            fileStream = fs.createWriteStream(options.filePath);
+        }
 
-                // Get TFRecords CRCs for TFRecords Header and Footer
-                const bufferLength = getInt64Buffer(length);
-                const bufferLengthMaskedCRC = getInt32Buffer(maskCrc(crc32c(bufferLength)));
-                const bufferDataMaskedCRC = getInt32Buffer(maskCrc(crc32c(record)));
-                callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
+        const transformer = new TFRecordsTransform(
+            {
+                transform: (record: Buffer, encoding, callback) => {
+                    const length = record.length;
+
+                    // Get TFRecords CRCs for TFRecords Header and Footer
+                    const bufferLength = getInt64Buffer(length);
+                    const bufferLengthMaskedCRC = getInt32Buffer(maskCrc(crc32c(bufferLength)));
+                    const bufferDataMaskedCRC = getInt32Buffer(maskCrc(crc32c(record)));
+                    callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
+                },
+                highWaterMark: options?.highWaterMark,
             },
-            highWaterMark: options?.highWaterMark,
-        });
+            fileStream,
+        );
 
-        if (!options?.filePath) {
-            return transformer;
+        if (fileStream) {
+            transformer.pipe(fileStream);
         }
 
-        // File output mode
-        if (!fs) {
-            throw new Error("File output is only available in Node.js. Use transformStream() without filePath in the browser.");
-        }
-
-        const fileStream = fs.createWriteStream(options.filePath);
-        transformer.pipe(fileStream);
-
-        return {
-            write: (record: Buffer) => transformer.write(record),
-            end: () => new Promise<void>((resolve, reject) => {
-                transformer.end();
-                finished(fileStream, (err) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }),
-        };
+        return transformer;
     }
 
     private features: Features;

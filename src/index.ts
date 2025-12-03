@@ -1,2 +1,2 @@
-export { FeatureType, TFRecordsBuilder, ITFRecordsFileWriter, TransformStreamOptions } from "./tensorFlowBuilder";
+export { FeatureType, TFRecordsBuilder, TFRecordsTransform, TransformStreamOptions } from "./tensorFlowBuilder";
 export { TFRecordsReader } from "./tensorFlowReader";
