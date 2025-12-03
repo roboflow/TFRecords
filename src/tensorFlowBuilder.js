@@ -59,8 +59,11 @@ class TFRecordsBuilder {
         records.forEach((r) => transformer.write(r));
         return transformer;
     }
-    static transformStream(highWaterMark) {
-        return new stream_1.Transform({
+    static transformStream(optionsOrHighWaterMark) {
+        const options = typeof optionsOrHighWaterMark === "number"
+            ? { highWaterMark: optionsOrHighWaterMark }
+            : optionsOrHighWaterMark;
+        const transformer = new stream_1.Transform({
             transform: (record, encoding, callback) => {
                 const length = record.length;
                 // Get TFRecords CRCs for TFRecords Header and Footer
@@ -69,32 +72,28 @@ class TFRecordsBuilder {
                 const bufferDataMaskedCRC = (0, tensorFlowHelpers_1.getInt32Buffer)((0, tensorFlowHelpers_1.maskCrc)((0, tensorFlowHelpers_1.crc32c)(record)));
                 callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
             },
-            highWaterMark,
+            highWaterMark: options === null || options === void 0 ? void 0 : options.highWaterMark,
         });
-    }
-    /**
-     * @param filePath - Path to the output file
-     * @description - Create a writer that streams TFRecords directly to disk.
-     *                Use this for large datasets to avoid memory issues.
-     *                Only available in Node.js environments.
-     * @returns - A writer with write() and end() methods
-     */
-    static createFileWriter(filePath) {
-        if (!fs) {
-            throw new Error("createFileWriter is only available in Node.js. Use buildTFRecords() or transformStream() in the browser.");
+        if (!(options === null || options === void 0 ? void 0 : options.filePath)) {
+            return transformer;
         }
-        const fileStream = fs.createWriteStream(filePath);
-        const transformer = this.transformStream();
+        // File output mode
+        if (!fs) {
+            throw new Error("File output is only available in Node.js. Use transformStream() without filePath in the browser.");
+        }
+        const fileStream = fs.createWriteStream(options.filePath);
         transformer.pipe(fileStream);
         return {
             write: (record) => transformer.write(record),
             end: () => new Promise((resolve, reject) => {
                 transformer.end();
                 (0, stream_1.finished)(fileStream, (err) => {
-                    if (err)
+                    if (err) {
                         reject(err);
-                    else
+                    }
+                    else {
                         resolve();
+                    }
                 });
             }),
         };

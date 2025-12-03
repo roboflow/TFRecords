@@ -103,7 +103,7 @@ describe("TFRecords Builder Functions", function () {
             });
         });
     });
-    describe("createFileWriter - disk buffering", function () {
+    describe("transformStream with filePath - disk buffering", function () {
         var tempFile;
         beforeEach(function () {
             tempFile = path.join(os.tmpdir(), "test-tfrecords-".concat(Date.now(), ".tfrecord"));
@@ -130,7 +130,7 @@ describe("TFRecords Builder Functions", function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        writer = tensorFlowBuilder_1.TFRecordsBuilder.createFileWriter(tempFile);
+                        writer = tensorFlowBuilder_1.TFRecordsBuilder.transformStream({ filePath: tempFile });
                         // Create and write multiple records
                         for (i = 0; i < 3; i++) {
                             builder = new tensorFlowBuilder_1.TFRecordsBuilder();
@@ -159,7 +159,7 @@ describe("TFRecords Builder Functions", function () {
                         builder.addArrayFeature("image/height", tensorFlowBuilder_1.FeatureType.String, ["1", "2"]);
                         record = builder.build();
                         inMemoryResult = tensorFlowBuilder_1.TFRecordsBuilder.buildTFRecords([record]);
-                        writer = tensorFlowBuilder_1.TFRecordsBuilder.createFileWriter(tempFile);
+                        writer = tensorFlowBuilder_1.TFRecordsBuilder.transformStream({ filePath: tempFile });
                         writer.write(record);
                         return [4 /*yield*/, writer.end()];
                     case 1:

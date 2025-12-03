@@ -16,6 +16,11 @@ export interface ITFRecordsFileWriter {
     end(): Promise<void>;
 }
 
+export interface TransformStreamOptions {
+    highWaterMark?: number;
+    filePath?: string;
+}
+
 /**
  * @name - TFRecords Feature Type
  * @description - Defines the type of TFRecords Feature
@@ -67,8 +72,25 @@ export class TFRecordsBuilder {
         return transformer;
     }
 
-    public static transformStream(highWaterMark?: number): Transform {
-        return new Transform({
+    /**
+     * @description - Create a Transform stream for TFRecords.
+     *                Optionally writes directly to disk when filePath is provided.
+     * @param optionsOrHighWaterMark - Stream buffer size (number) or options object
+     * @param options.highWaterMark - Stream buffer size
+     * @param options.filePath - When provided, pipes output to this file (Node.js only)
+     * @returns - Transform stream, or ITFRecordsFileWriter when filePath is provided
+     */
+    public static transformStream(): Transform;
+    public static transformStream(highWaterMark: number): Transform;
+    public static transformStream(options: { highWaterMark?: number }): Transform;
+    public static transformStream(options: { filePath: string; highWaterMark?: number }): ITFRecordsFileWriter;
+    public static transformStream(optionsOrHighWaterMark?: TransformStreamOptions | number): Transform | ITFRecordsFileWriter {
+        const options: TransformStreamOptions | undefined =
+            typeof optionsOrHighWaterMark === "number"
+                ? { highWaterMark: optionsOrHighWaterMark }
+                : optionsOrHighWaterMark;
+
+        const transformer = new Transform({
             transform: (record: Buffer, encoding, callback) => {
                 const length = record.length;
 
@@ -78,24 +100,19 @@ export class TFRecordsBuilder {
                 const bufferDataMaskedCRC = getInt32Buffer(maskCrc(crc32c(record)));
                 callback(undefined, Buffer.concat([bufferLength, bufferLengthMaskedCRC, record, bufferDataMaskedCRC]));
             },
-            highWaterMark,
+            highWaterMark: options?.highWaterMark,
         });
-    }
 
-    /**
-     * @param filePath - Path to the output file
-     * @description - Create a writer that streams TFRecords directly to disk.
-     *                Use this for large datasets to avoid memory issues.
-     *                Only available in Node.js environments.
-     * @returns - A writer with write() and end() methods
-     */
-    public static createFileWriter(filePath: string): ITFRecordsFileWriter {
-        if (!fs) {
-            throw new Error("createFileWriter is only available in Node.js. Use buildTFRecords() or transformStream() in the browser.");
+        if (!options?.filePath) {
+            return transformer;
         }
 
-        const fileStream = fs.createWriteStream(filePath);
-        const transformer = this.transformStream();
+        // File output mode
+        if (!fs) {
+            throw new Error("File output is only available in Node.js. Use transformStream() without filePath in the browser.");
+        }
+
+        const fileStream = fs.createWriteStream(options.filePath);
         transformer.pipe(fileStream);
 
         return {

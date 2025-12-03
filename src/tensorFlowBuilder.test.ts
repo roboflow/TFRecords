@@ -72,7 +72,7 @@ describe("TFRecords Builder Functions", () => {
         });
     });
 
-    describe("createFileWriter - disk buffering", () => {
+    describe("transformStream with filePath - disk buffering", () => {
         let tempFile: string;
 
         beforeEach(() => {
@@ -89,7 +89,7 @@ describe("TFRecords Builder Functions", () => {
         });
 
         it("writes records to disk without holding them in memory", async () => {
-            const writer = TFRecordsBuilder.createFileWriter(tempFile);
+            const writer = TFRecordsBuilder.transformStream({ filePath: tempFile });
 
             // Create and write multiple records
             for (let i = 0; i < 3; i++) {
@@ -116,7 +116,7 @@ describe("TFRecords Builder Functions", () => {
             const inMemoryResult = TFRecordsBuilder.buildTFRecords([record]);
 
             // Build using file writer
-            const writer = TFRecordsBuilder.createFileWriter(tempFile);
+            const writer = TFRecordsBuilder.transformStream({ filePath: tempFile });
             writer.write(record);
             await writer.end();
 
